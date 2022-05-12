@@ -14,7 +14,7 @@ router.post("/payment", (req, res) => {
       } else {
         res.status(200).json(stripeRes);
       }
-    }
+    } 
   );
 });
 

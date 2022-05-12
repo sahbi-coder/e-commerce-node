@@ -6,12 +6,15 @@ const Product = require("../models/Product");
 
 router.post("/", verifyTokenAndGetUser, async (req, res) => {
   if (req.user.isAdmin) {
+    
     const newProduct = new Product(req.body);
-
+    
+   
     try {
       const savedProduct = await newProduct.save();
       return res.status(200).json(savedProduct);
     } catch (err) {
+    
       return res
         .status(500)
         .json({ errors: [{ msg: "internal server error" }] });

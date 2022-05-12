@@ -61,52 +61,50 @@ router.get("/", verifyTokenAndGetUser, async (req, res) => {
   if (req.user.isAdmin) {
     try {
       const orders = await Order.find();
-      res.status(200).json(orders);
+      return res.status(200).json(orders);
     } catch (err) {
-      res.status(500).json({ errors: [{ msg: "internal server error" }] });
+      return res.status(500).json({ errors: [{ msg: "internal server error" }] });
     }
   }
-  res.status(401).json({ errors: [{ msg: "you are not autherized" }] });
+   return res.status(401).json({ errors: [{ msg: "you are not autherized" }] });
 });
+// GET MONTHLY INCOME
 
 router.get("/income", verifyTokenAndGetUser, async (req, res) => {
-  if (req.user.isAdmin) {
-    const productId = req.query.pid;
-    const date = new Date();
-    const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
-    const previousMonth = new Date(
-      new Date().setMonth(lastMonth.getMonth() - 1)
-    );
+  const productId = req.query.pid;
+  const date = new Date();
+  const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
+ 
+  
+  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
 
-    try {
-      const income = await Order.aggregate([
-        {
-          $match: {
-            createdAt: { $gte: previousMonth },
-            ...(productId && {
-              products: { $elemMatch: { productId } },
-            }),
-          },
+  try {
+    const income = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: previousMonth },
+          ...(productId && {
+            products: { $elemMatch: { productId } },
+          }),
         },
-        {
-          $project: {
-            month: { $month: "$createdAt" },
-            sales: "$amount",
-          },
+      },
+      {
+        $project: {
+          month: { $month: "$createdAt" },
+          sales: "$amount",
         },
-        {
-          $group: {
-            _id: "$month",
-            total: { $sum: "$sales" },
-          },
+      },
+      {
+        $group: {
+          _id: "$month",
+          total: { $sum: "$sales" },
         },
-      ]);
-      res.status(200).json(income);
-    } catch (err) {
-      res.status(500).json({ errors: [{ msg: "internal server error" }] });
-    }
+      },
+    ]);
+    res.status(200).json(income);
+  } catch (err) {
+    res.status(500).json(err);
   }
-  res.status(401).json({ errors: [{ msg: "you are not autherized" }] });
 });
 
 module.exports = router;
