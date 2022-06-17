@@ -2,8 +2,9 @@ const Cart = require("../models/Cart");
 const verifyTokenAndGetUser = require("./verifyToken");
 const router = require("express").Router();
 
-router.post("/", verifyTokenAndGetUser, async (req, res) => {
+router.post("/",  async (req, res) => {
   const newCart = new Cart(req.body);
+  
 
   try {
     const savedCart = await newCart.save();

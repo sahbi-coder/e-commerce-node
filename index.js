@@ -7,6 +7,7 @@ const auth = require('./routes/auth')
 const cart = require('./routes/cart')
 const order = require('./routes/order')
 const product = require('./routes/product')
+const whishlist = require('./routes/whishlist')
 const cors = require('cors')
 app.use(cors({
     origin:'*'
@@ -31,6 +32,7 @@ app.use('/api/carts',cart)
 app.use('/api/auth',auth)
 app.use('/api/orders',order)
 app.use('/api/products',product)
+app.use('/api/wishlists',whishlist)
 app.listen(process.env.PORT|| 5000,()=>{
     console.log('server is listening on port 5000')
 })

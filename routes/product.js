@@ -73,6 +73,9 @@ router.get("/find/:id", async (req, res) => {
 router.get("/", async (req, res) => {
   const qNew = req.query.new;
   const qCategory = req.query.category;
+  const div = req.query.division
+ 
+
   try {
     let products;
 
@@ -82,6 +85,9 @@ router.get("/", async (req, res) => {
       products = await Product.find({
         categories: {
           $in: [qCategory],
+        },
+        division: {
+          $in: [div],
         },
       });
     } else {
