@@ -81,7 +81,7 @@ router.get("/", async (req, res) => {
 
     if (qNew) {
       products = await Product.find().sort({ createdAt: -1 }).limit(1);
-    } else if (qCategory) {
+    } else if (qCategory&&(div==='men'||div==='women')) {
       products = await Product.find({
         categories: {
           $in: [qCategory],
@@ -90,7 +90,16 @@ router.get("/", async (req, res) => {
           $in: [div],
         },
       });
-    } else {
+    } 
+    else if (qCategory) {
+      products = await Product.find({
+        categories: {
+          $in: [qCategory],
+        }
+       
+      });
+    }
+    else {
       products = await Product.find();
     }
 
