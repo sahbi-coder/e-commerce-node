@@ -33,6 +33,7 @@ router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
   
 });
 
+
 router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
   
     try {
