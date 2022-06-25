@@ -3,13 +3,16 @@ const verifyTokenAndGetUser = require("./verifyToken");
 const router = require("express").Router();
 
 router.post("/",  async (req, res) => {
+  
   const newCart = new Cart(req.body);
+
   
 
   try {
     const savedCart = await newCart.save();
     res.status(200).json(savedCart);
   } catch (err) {
+    console.log(err)
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });
