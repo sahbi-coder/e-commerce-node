@@ -56,6 +56,7 @@ router.get("/find/:userId", verifyTokenAndGetUser, async (req, res) => {
       const cart = await Cart.findOne({ userId: req.params.userId });
       return res.status(200).json(cart);
     } catch (err) {
+      console.log(err)
       return res
         .status(500)
         .json({ errors: [{ msg: "internal server error" }] });
