@@ -12,6 +12,7 @@ async function verifyTokenAndGetUser(req, res, next) {
     
     return next();
   } catch (e) {
+  
     
     res.status(500).send({ errors: [{ msg: "internal server error" }] });
   }

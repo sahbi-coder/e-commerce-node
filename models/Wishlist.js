@@ -13,6 +13,6 @@ const WishlistSchema = new mongoose.Schema(
         img: { type: String },
       },
     ],
-  }
+  },{timestamps:true}
 );
 module.exports = mongoose.model("Wishlist", WishlistSchema);

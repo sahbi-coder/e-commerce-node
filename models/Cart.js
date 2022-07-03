@@ -5,10 +5,7 @@ const cartSchema = new mongoose.Schema(
     userId: {
       type: String,
       required: true,
-     
-     
-   
-     
+       
     },
     products: [
       {
@@ -31,9 +28,8 @@ const cartSchema = new mongoose.Schema(
         img: {
           type: String,
         },
-      },
-      { timestamps: true },
+      }
     ],
-  }
+  },{timestamps:true}
 );
 module.exports = mongoose.model("Cart", cartSchema);
