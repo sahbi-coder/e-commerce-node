@@ -6,48 +6,71 @@ router.post("/", verifyTokenAndGetUser, async (req, res) => {
   const regexCode = /^.{1,13}$/;
   const regexNumber = /^[0-9]{5,20}$/;
   const regexAddress = /^.{5,50}$/;
-  
+
   if (
     regexCode.test(req.body.phone.countryCode) &&
     regexNumber.test(req.body.phone.number) &&
     regexAddress.test(req.body.address)
-    ) {
-    
-    const newOrder = new Order(req.body);
-
-   
-
+  ) {
     try {
+      const newOrder = new Order(req.body);
       const savedOrder = await newOrder.save();
       return res.status(200).json(savedOrder);
-    } catch (err) {
-      return res.status(500).json({ errors: [{ msg: "internal server error" }] });
+    } catch  {
+      return res
+        .status(500)
+        .json({ errors: [{ msg: "internal server error" }] });
     }
   }
   res.status(400).json({ errors: [{ msg: "bad request" }] });
-
 });
 
 router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
-  try {
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: req.body,
-      },
-      { new: true }
-    );
-    return res.status(200).json(updatedOrder);
-  } catch (err) {
-    return res.status(500).json({ errors: [{ msg: "internal server error" }] });
+  const regexCode = /^.{1,13}$/;
+  const regexNumber = /^[0-9]{5,20}$/;
+  const regexAddress = /^.{5,50}$/;
+
+  const last = req.body.orders[req.body.orders.length - 1];
+  const orders = req.body.orders;
+
+  const badRequest =
+    orders.reduce((pre, order, index) => {
+      if (
+        regexCode.test(order.phone.countryCode) &&
+        regexNumber.test(order.phone.number) &&
+        regexAddress.test(order.address)
+      ) {
+        return pre + 1;
+      }
+      return pre;
+    }, 0) !== orders.length;
+
+  if (!badRequest) {
+    
+    try {
+      const updatedOrder = await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: req.body,
+        },
+        { new: true }
+      );
+
+      return res.status(200).json(updatedOrder);
+    } catch {
+      return res
+        .status(500)
+        .json({ errors: [{ msg: "internal server error" }] });
+    }
   }
+  return res.status(400).json({ errors: [{ msg: "bad request" }] });
 });
 
 router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
   try {
     await Order.findByIdAndDelete(req.params.id);
     return res.status(200).json("Order has been deleted...");
-  } catch (err) {
+  } catch  {
     return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });
@@ -56,7 +79,7 @@ router.get("/find/:userId", verifyTokenAndGetUser, async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.params.userId });
     res.status(200).json(orders);
-  } catch (err) {
+  } catch {
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });

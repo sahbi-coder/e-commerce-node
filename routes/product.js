@@ -2,19 +2,14 @@ const router = require("express").Router();
 const verifyTokenAndGetUser = require("./verifyToken");
 const Product = require("../models/Product");
 
-
-
 router.post("/", verifyTokenAndGetUser, async (req, res) => {
   if (req.user.isAdmin) {
-    
     const newProduct = new Product(req.body);
-    
-   
+
     try {
       const savedProduct = await newProduct.save();
       return res.status(200).json(savedProduct);
     } catch (err) {
-    
       return res
         .status(500)
         .json({ errors: [{ msg: "internal server error" }] });
@@ -22,7 +17,6 @@ router.post("/", verifyTokenAndGetUser, async (req, res) => {
   }
   res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
-
 
 router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
   if (req.user.isAdmin) {
@@ -35,7 +29,7 @@ router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
         { new: true }
       );
       return res.status(200).json(updatedProduct);
-    } catch (err) {
+    } catch {
       return res
         .status(500)
         .json({ errors: [{ msg: "internel server error" }] });
@@ -44,13 +38,12 @@ router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
   res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
 
-
 router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
   if (req.user.isAdmin) {
     try {
       await Product.findByIdAndDelete(req.params.id);
       return res.status(200).json("Product has been deleted...");
-    } catch (err) {
+    } catch {
       return res
         .status(500)
         .json({ errors: [{ msg: "internal server error" }] });
@@ -58,7 +51,6 @@ router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
   }
   res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
-
 
 router.get("/find/:id", async (req, res) => {
   try {
@@ -69,19 +61,32 @@ router.get("/find/:id", async (req, res) => {
   }
 });
 
-
 router.get("/", async (req, res) => {
-  const qNew = req.query.new;
-  const qCategory = req.query.category;
-  const div = req.query.division
- 
-
   try {
+    const qCategory = req.query.category;
+    const div = req.query.division;
+
+    const colors = (
+      await Product.aggregate([
+        { $unwind: "$color" },
+        {
+          $group: {
+            _id: "$color",
+          },
+        },
+        { $project: { _id: 1 } },
+        {
+          $group: {
+            _id: "c",
+            colors: { $push: "$_id" },
+          },
+        },
+      ])
+    )[0].colors;
+
     let products;
 
-    if (qNew) {
-      products = await Product.find().sort({ createdAt: -1 }).limit(1);
-    } else if (qCategory&&(div==='men'||div==='women')) {
+    if (qCategory && (div === "men" || div === "women")) {
       products = await Product.find({
         categories: {
           $in: [qCategory],
@@ -90,20 +95,17 @@ router.get("/", async (req, res) => {
           $in: [div],
         },
       });
-    } 
-    else if (qCategory) {
+    } else if (qCategory) {
       products = await Product.find({
         categories: {
           $in: [qCategory],
-        }
-       
+        },
       });
-    }
-    else {
+    } else {
       products = await Product.find();
     }
 
-    res.status(200).json(products);
+    res.status(200).json({ products, colors });
   } catch (err) {
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
