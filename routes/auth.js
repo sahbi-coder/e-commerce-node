@@ -8,6 +8,9 @@ const Order = require("../models/Order");
 const Wishlist = require("../models/Wishlist");
 const Cart = require("../models/Cart");
 const nodemailer = require("nodemailer");
+const expiresInConstatnt = 360000000;
+
+
 
 const initAccount = async (res, userParams) => {
   let userId = "";
@@ -15,8 +18,8 @@ const initAccount = async (res, userParams) => {
   let order = null;
   let cart = null;
   let wishlist = null;
-  const newUser = new User(userParams);
   try {
+  const newUser = new User(userParams);
     user = await newUser.save();
     userId = user._id.toString();
 
@@ -61,7 +64,9 @@ router.post(
           .json({ errors: [{ msg: "invalid credentials" }] });
       }
     } catch {
-      return res.status(500).json({ errors: [{ msg:"internal server error" }] });
+      return res
+        .status(500)
+        .json({ errors: [{ msg: "internal server error" }] });
     }
 
     initAccount(res, {
@@ -82,36 +87,34 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: [{ msg: "invalid credentials" }] });
     }
-    try{
-
+    try {
       const user = await User.findOne({ email: req.body.email });
-  
+
       if (user) {
         const decretedPassword = CryptoJS.AES.decrypt(
           user.password,
           process.env.USER_PASSWORD_SEC_HASH_PHRASE
         ).toString(CryptoJS.enc.Utf8);
-  
+
         if (decretedPassword !== req.body.password) {
           return res
             .status(400)
             .json({ errors: [{ msg: "invalid credentials" }] });
         }
         const { password, ...others } = user._doc;
-  
+
         const token = jwt.sign(
           {
             id: user.id,
           },
           process.env.JWT_SEC_HASH_PHRASE,
-          { expiresIn: "3d" }
+          { expiresIn: Math.round(expiresInConstatnt/1000)+"s" }
         );
-  
-        return res.status(200).json({ ...others, token });
+       
+        return res.status(200).json({ ...others, token,expiresInConstatnt });
       }
       res.status(400).json({ errors: [{ msg: "invalid credentials" }] });
-    }
-    catch{
+    } catch {
       res.status(400).json({ errors: [{ msg: "internal server error" }] });
     }
   }
@@ -125,8 +128,11 @@ router.post("/forgot-password", async (req, res) => {
         email: user.email,
         id: user._id.toString(),
       };
-      const token = jwt.sign(payload, sec, { expiresIn: "1200s" });
-      const link = `http://localhost:3000/forgot-password/${user._id.toString()}/${token}`;
+      const token = jwt.sign(payload, sec, { expiresIn: Math.round(expiresInConstatnt/1000)+"s" });
+
+      const link = user.isAdmin
+        ? `http://localhost:3000/confirm-password/${user._id.toString()}/${token}`
+        : `http://localhost:3001/forgot-password/${user._id.toString()}/${token}`;
 
       let transporter = nodemailer.createTransport({
         service: "outlook",
@@ -143,11 +149,10 @@ router.post("/forgot-password", async (req, res) => {
         text: link,
       });
 
-      return res.json({ msg: "we sent transaction email" }).status(200);
+      return res.status(200).json({ msg: "we sent transaction email" });
     }
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   } catch (e) {
-    
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });

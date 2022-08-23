@@ -3,24 +3,22 @@ const verifyTokenAndGetUser = require("./verifyToken");
 const Product = require("../models/Product");
 
 router.post("/", verifyTokenAndGetUser, async (req, res) => {
-  if (req.user.isAdmin) {
-    const newProduct = new Product(req.body);
+  try {
+    if (req.user.isAdmin) {
+      const newProduct = new Product(req.body);
 
-    try {
       const savedProduct = await newProduct.save();
       return res.status(200).json(savedProduct);
-    } catch (err) {
-      return res
-        .status(500)
-        .json({ errors: [{ msg: "internal server error" }] });
     }
+    res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
+  } catch (err) {
+    return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
-  res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
 
 router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
-  if (req.user.isAdmin) {
-    try {
+  try {
+    if (req.user.isAdmin) {
       const updatedProduct = await Product.findByIdAndUpdate(
         req.params.id,
         {
@@ -29,27 +27,23 @@ router.put("/:id", verifyTokenAndGetUser, async (req, res) => {
         { new: true }
       );
       return res.status(200).json(updatedProduct);
-    } catch {
-      return res
-        .status(500)
-        .json({ errors: [{ msg: "internel server error" }] });
     }
+    res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
+  } catch {
+    return res.status(500).json({ errors: [{ msg: "internel server error" }] });
   }
-  res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
 
 router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
-  if (req.user.isAdmin) {
-    try {
+  try {
+    if (req.user.isAdmin) {
       await Product.findByIdAndDelete(req.params.id);
       return res.status(200).json("Product has been deleted...");
-    } catch {
-      return res
-        .status(500)
-        .json({ errors: [{ msg: "internal server error" }] });
     }
+    res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
+  } catch {
+    return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
-  res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
 
 router.get("/find/:id", async (req, res) => {

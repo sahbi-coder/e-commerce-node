@@ -4,9 +4,7 @@ const productSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required:true
-     
-    
+      required: true,
     },
     desc: {
       type: String,
@@ -29,15 +27,24 @@ const productSchema = new mongoose.Schema(
     categories: {
       type: Array,
     },
-    inStock:{
-      type:Boolean,
-      default:true
+    stock: {
+      color: String,
+      inStock: [
+        {
+          size: {
+            type: String,
+          },
+          count: {
+            type: Number,
+          },
+        },
+      ],
     },
-    division:{
-      type:String,
-      default:"men"
-    }
+    division: {
+      type: String,
+      default: "men",
+    },
   },
   { timestamps: true }
 );
-module.exports = mongoose.model('Product',productSchema);
+module.exports = mongoose.model("Product", productSchema);

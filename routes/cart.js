@@ -32,7 +32,7 @@ router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
   try {
     await Cart.findByIdAndDelete(req.params.id);
     return res.status(200).json("Cart has been deleted...");
-  } catch  {
+  } catch {
     return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });
@@ -42,23 +42,20 @@ router.get("/find/:userId", verifyTokenAndGetUser, async (req, res) => {
     const cart = await Cart.findOne({ userId: req.params.userId });
     return res.status(200).json(cart);
   } catch {
-    
     return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });
 
 router.get("/", verifyTokenAndGetUser, async (req, res) => {
-  if (req.user.iAdmin) {
-    try {
+  try {
+    if (req.user&&req.user.iAdmin) {
       const carts = await Cart.find();
       return res.status(200).json(carts);
-    } catch (err) {
-      return res
-        .status(500)
-        .json({ errors: [{ msg: "internal server error" }] });
     }
+    res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
+  } catch (err) {
+    return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
-  res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
 });
 
 module.exports = router;
