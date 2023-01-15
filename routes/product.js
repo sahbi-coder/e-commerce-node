@@ -66,27 +66,24 @@ router.get("/", async (req, res) => {
     const qCategory = req.query.category;
     const div = req.query.division;
 
-    const colors = (
-      await Product.aggregate([
+    let colors = [];
+    let products = [];
+
+    if (qCategory && (div === "men" || div === "women")) {
+      const unfilteredColors = await Product.aggregate([
+        { $unwind: "$categories" },
+        { $match: { categories: qCategory, division: div } },
         { $unwind: "$color" },
         {
           $group: {
-            _id: "$color",
-          },
-        },
-        { $project: { _id: 1 } },
-        {
-          $group: {
             _id: "c",
-            colors: { $push: "$_id" },
+            colors: { $push: "$color" },
           },
         },
-      ])
-    )[0].colors;
-
-    let products;
-
-    if (qCategory && (div === "men" || div === "women")) {
+      ]);
+      colors = [...new Set(unfilteredColors[0].colors)];
+  
+    
       products = await Product.find({
         categories: {
           $in: [qCategory],
@@ -96,15 +93,29 @@ router.get("/", async (req, res) => {
         },
       });
     } else if (qCategory) {
+      const unfilteredColors = await Product.aggregate([
+        { $unwind: "$categories" },
+        { $match: { categories: qCategory } },
+        { $unwind: "$color" },
+        {
+          $group: {
+            _id: "c",
+            colors: { $push: "$color" },
+          },
+        },
+      ]);
+      colors = [...new Set(unfilteredColors[0].colors)];
+      
       products = await Product.find({
         categories: {
           $in: [qCategory],
         },
       });
     } else {
-      products = await Product.find();
+      products = await Product.find().sort({'createdAt':1}).limit(8);
+    
     }
-
+ 
     res.status(200).json({ products, colors });
   } catch (err) {
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
