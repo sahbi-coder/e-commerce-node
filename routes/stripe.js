@@ -12,7 +12,7 @@ router.post("/", verifyTokenAndGetUser, async (req, res) => {
     const { amountArray, id } = req.body;
     const amountStringifyed = JSON.stringify(amountArray);
     const amountParsed = JSON.parse(amountStringifyed);
-    const ids = [...amountParsed].reduce((pre, acc) => {
+    const ids = [...amountParsed].reduce((pre, acc) => { 
       pre.push(acc.productId);
       return pre;
     }, []);
@@ -41,7 +41,8 @@ router.post("/", verifyTokenAndGetUser, async (req, res) => {
       message: `you 've paid $${amount / 1000} with success .`,
       success: true,
     });
-  } catch {
+  } catch(e) {
+    console.log(e)
     res.json({
       message: "Payment failed",
       success: false,

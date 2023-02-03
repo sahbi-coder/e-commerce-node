@@ -23,24 +23,15 @@ const productSchema = new mongoose.Schema(
     },
     color: {
       type: Array,
-    },
+    }, 
     categories: {
       type: Array,
     },
-    stock: {
-      color: String,
-      inStock: [
-        {
-          size: {
-            type: String,
-          },
-          count: {
-            type: Number,
-          },
-        },
-      ],
+    inStock: {
+      type:Boolean,
+      default:true
     },
-    division: {
+    division: {  
       type: String,
       default: "men",
     },

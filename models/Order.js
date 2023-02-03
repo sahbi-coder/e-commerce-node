@@ -1,4 +1,5 @@
 
+const { Timestamp } = require("mongodb");
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
@@ -29,6 +30,7 @@ const orderSchema = new mongoose.Schema(
           img: {
             type: String,
           },
+        
         },
       
       ],
@@ -46,6 +48,10 @@ const orderSchema = new mongoose.Schema(
       status: {
         type: String,
         default: "pending",
+      },
+      createdAt:{
+        type:Date,
+        default: new Date()
       }
     }],
    

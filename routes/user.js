@@ -33,7 +33,7 @@ router.delete("/:id", verifyTokenAndGetUser, async (req, res) => {
 router.get("/", verifyTokenAndGetUser, async (req, res) => {
   try {
     if (req.user.isAdmin) {
-      const users = await User.find()
+      const users = await User.find();
       return res.status(200).json(users);
     }
     res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
@@ -41,28 +41,32 @@ router.get("/", verifyTokenAndGetUser, async (req, res) => {
     return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });
+
 //GET USER STATS
 
 router.get("/stats", verifyTokenAndGetUser, async (req, res) => {
   try {
-    const date = new Date();
-    const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
-    const data = await User.aggregate([
-      { $match: { createdAt: { $gte: lastYear } } },
-      {
-        $project: {
-          month: { $month: "$createdAt" },
+    if (req.user.isAdmin) {
+      const date = new Date();
+      const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
+      const data = await User.aggregate([
+        { $match: { createdAt: { $gte: lastYear } } },
+        {
+          $project: {
+            month: { $month: "$createdAt" },
+          },
         },
-      },
-      {
-        $group: {
-          _id: "$month",
-          total: { $sum: 1 },
+        {
+          $group: {
+            _id: "$month",
+            total: { $sum: 1 },
+          },
         },
-      },
-    ]);
+      ]);
 
-    res.status(200).json(data);
+      return res.status(200).json(data);
+    }
+    res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
   } catch (err) {
     res.status(500).json(err);
   }
@@ -70,8 +74,8 @@ router.get("/stats", verifyTokenAndGetUser, async (req, res) => {
 
 router.get("/:id", verifyTokenAndGetUser, async (req, res) => {
   try {
-    if (eq.user.isAdmin || req.user.id === req.params.id) {
-      const fetchedUser = await User.findOne({ id: req.params.id });
+    if (req.user.id === req.params.id || req.user.isAdmin) {
+      const fetchedUser = await User.findOne({ _id: req.params.id });
 
       return res.status(200).json(fetchedUser);
     }

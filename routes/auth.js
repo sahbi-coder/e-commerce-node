@@ -130,29 +130,36 @@ router.post("/forgot-password", async (req, res) => {
       };
       const token = jwt.sign(payload, sec, { expiresIn: Math.round(expiresInConstatnt/1000)+"s" });
 
-      const link = user.isAdmin
-        ? `http://localhost:3000/confirm-password/${user._id.toString()}/${token}`
-        : `http://localhost:3001/forgot-password/${user._id.toString()}/${token}`;
+      const link = user.isAdmin=`http://localhost:3000/forgot-password/${user._id.toString()}/${token}`;
+      const output = `   
+      <p>Dear user</p>
+      <p>Please click the link below to reset password:</p>
+      
+      <p>${link}</p>
+     `;
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
 
-      let transporter = nodemailer.createTransport({
-        service: "outlook",
         auth: {
           user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASSWORD,
+          pass: process.env.MAIL_APP_PASSWORD,
         },
       });
 
-      let info = await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: process.env.MAIL_USER,
         to: user.email,
         subject: "reset myFashion password",
-        text: link,
+        html: output,
       });
 
       return res.status(200).json({ msg: "we sent transaction email" });
     }
+ 
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   } catch (e) {
+   
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });

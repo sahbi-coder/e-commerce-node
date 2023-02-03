@@ -12,6 +12,7 @@ router.post("/", verifyTokenAndGetUser, async (req, res) => {
     }
     res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ errors: [{ msg: "internal server error" }] });
   }
 });
@@ -55,6 +56,27 @@ router.get("/find/:id", async (req, res) => {
   }
 });
 
+router.get("/admin", verifyTokenAndGetUser, async function (req, res) {
+  try {
+    if (req.user && req.user.isAdmin) {
+      const products = await Product.find().sort({ createdAt: -1 });
+      res.status(200).send(products);
+      return;
+    }
+    res.status(401).json({ errors: [{ msg: "you are not authorized" }] });
+  } catch (err) {
+    res.status(500).json({ errors: [{ msg: "internal server error" }] });
+  }
+});
+router.get("/all", async function (req, res) {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.status(200).send(products);
+  } catch (err) {
+    res.status(500).json({ errors: [{ msg: "internal server error" }] });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const qCategory = req.query.category;
@@ -76,8 +98,7 @@ router.get("/", async (req, res) => {
         },
       ]);
       colors = [...new Set(unfilteredColors[0].colors)];
-  
-    
+
       products = await Product.find({
         categories: {
           $in: [qCategory],
@@ -99,17 +120,16 @@ router.get("/", async (req, res) => {
         },
       ]);
       colors = [...new Set(unfilteredColors[0].colors)];
-      
+
       products = await Product.find({
         categories: {
           $in: [qCategory],
         },
       });
     } else {
-      products = await Product.find().sort({'createdAt':1}).limit(8);
-    
+      products = await Product.find().sort({ createdAt: 1 }).limit(8);
     }
- 
+
     res.status(200).json({ products, colors });
   } catch (err) {
     res.status(500).json({ errors: [{ msg: "internal server error" }] });
